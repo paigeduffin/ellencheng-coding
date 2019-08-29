@@ -1,0 +1,80 @@
+---
+title: "Ellen Cheng's Coding Exercise"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(dslabs) # load package with required data
+help(gapminder) # help on gapminder data
+str(gapminder) # gapminder variable data types
+summary(gapminder) # summary statistics of the data
+class(gapminder) # gapminder is a dataframe
+```
+
+```{r}
+# Work with the Africa data ----
+africadata <- subset(gapminder, continent == "Africa") # assign only the African countries to a new variable called africadata
+str(africadata)
+summary(africadata)
+```
+
+```{r}
+# subset with infant mort
+subset_inf_life <- africadata[, c("infant_mortality", "life_expectancy")] # infant mortality is per 1000, life expectancy is in years
+str(subset_inf_life) 
+summary(subset_inf_life) # there are 226 NA's for infant mortality
+```
+
+```{r}
+# subset with pop
+subset_pop_life <- africadata[, c("population", "life_expectancy")] # population is the country population size
+str(subset_pop_life) # large range of country pop sizes
+summary(subset_pop_life) # there are 51 NA's for population size
+```
+
+```{r}
+# Plots ----
+# life expectancy as a function of infant mortality
+with(subset_inf_life, plot(life_expectancy ~ infant_mortality, main = "Life expectancy as a function of infant mortality", ylab = "Life expectancy (yrs)", xlab = "Infant deaths per 1000")) # negative correlation. Each streak is a different country.
+```
+
+```{r}
+# life expectancy as a function of population size, using a log-scale on the x-axis
+with(subset_pop_life, plot(life_expectancy ~ population, log = "x", main = "Life expectancy as a function of population size", sub = "(Note that x-axis is on log-scale)", ylab = "Life expectancy (yrs)", xlab = "Country population size")) # Each streak is a different country. Positive correlation within country.
+```
+
+```{r}
+# More data processing ----
+(missing_inf_mort <- unique(africadata$year[is.na(africadata$infant_mortality)])) # years with missing data for infant mortality
+```
+
+```{r}
+# subset of Yr2000 data
+subset_yr2000 <- subset(africadata, year == 2000)
+str(subset_yr2000)
+summary(subset_yr2000)
+```
+
+```{r}
+# More plotting ----
+# For Yr2000 ONLY, life expectancy as a function of infant mortality
+with(subset_yr2000, plot(life_expectancy ~ infant_mortality, main = "Yr 2000: Life expectancy as a function of infant mortality", ylab = "Life expectancy (yrs)", xlab = "Infant deaths per 1000")) # negative correlation
+```
+
+```{r}
+# For Yr2000 ONLY, life expectancy as a function of population size, using a log-scale on the x-axis
+with(subset_yr2000, plot(life_expectancy ~ population, log = "x", main = "Yr 2000: Life expectancy as a function of population size", sub = "(Note that x-axis is on log-scale)", ylab = "Life expectancy (yrs)", xlab = "Country population size")) # No apparent correlation
+```
+
+```{r}
+# Linear models (using Yr2000 data) ----
+#  linear model predicting life expectancy as a function of infant mortality
+summary(fit1 <- with(subset_yr2000, lm(life_expectancy ~ infant_mortality))) # p = 2.83E-8, so highly significant
+```
+
+```{r}
+#  linear model predicting life expectancy as a function of population size
+summary(fit2 <- with(subset_yr2000, lm(life_expectancy ~ population))) # p = 0.616, so not statistically significant at alpha = 0.05
+```

@@ -1,1 +1,1 @@
-# ellencheng-coding
+# Ellen Cheng's coding exercise for MADA Module#2
