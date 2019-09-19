@@ -1,0 +1,196 @@
+---
+title: "Ellen Cheng's Coding Exercise- with Paige Duffin's Additions"
+output:
+  html_document:
+    df_print: paged
+---
+
+### NOTE: I retained all the original coding from the author (Ellen Cheng) and interdispersed my new coding for the "Tidyverse" exercise. Blocks of code and text are headed by either "<font color="blue">EC:</font>" or "<font color="red">PD:</font>" when written by the original author or myself, respectively. I also add "_pd" to the end of all my variables I create. 
+
+### <font color="blue">EC:</font> 
+```{r}
+library(dslabs) # load package with required data
+```
+
+### <font color="red">PD:</font>
+Download and load `tidyverse` and `skimr` packages. 
+```{r}
+# install.packages("tidyverse") 
+# install.packages("skimr")
+library(tidyverse)
+library(skimr)
+```
+
+### <font color="blue">EC:</font> 
+```{r}
+help(gapminder) # help on gapminder data
+str(gapminder) # gapminder variable data types
+summary(gapminder) # summary statistics of the data
+class(gapminder) # gapminder is a dataframe
+```
+
+### <font color="red">PD:</font>
+Inspect `gapminder` with `glimpse` from `dplyr`.
+```{r}
+?glimpse # view documentation on glimpse
+glimpse(gapminder)
+```
+
+### <font color="red">PD:</font>
+Inspect `gapminder` with `skim` from `skimr`.
+```{r}
+?skim # view documentation on skim
+skim(gapminder)
+```
+
+### <font color="blue">EC:</font>  
+```{r}
+# Work with the Africa data ----
+africadata <- subset(gapminder, continent == "Africa") # assign only the African countries to a new variable called africadata
+str(africadata)
+summary(africadata)
+```
+
+### <font color="red">PD:</font>
+**Extract only the african countries using `filter` and `select` functions.**
+Reminding myself of table structure:
+```{r}
+head(gapminder)
+```
+So the column I want is `continent` and the level I want is `Africa`
+
+```{r}
+africa_data_pd <- filter(gapminder, continent == "Africa")
+head(africa_data_pd)
+```
+
+### <font color="blue">EC:</font> 
+```{r}
+# subset with infant mort
+subset_inf_life <- africadata[, c("infant_mortality", "life_expectancy")] # infant mortality is per 1000, life expectancy is in years
+str(subset_inf_life) 
+summary(subset_inf_life) # there are 226 NA's for infant mortality
+```
+
+### <font color="blue">EC:</font>  
+```{r}
+# subset with pop
+subset_pop_life <- africadata[, c("population", "life_expectancy")] # population is the country population size
+str(subset_pop_life) # large range of country pop sizes
+summary(subset_pop_life) # there are 51 NA's for population size
+```
+
+### <font color="red">PD:</font> 
+Keep only variables `infant_mortality`, `life_expectancy`, `population` and `country`.
+```{r}
+pop_ctry_infmort_lifeexp_pd <- select(africa_data_pd, country, population, infant_mortality, life_expectancy)
+head(pop_ctry_infmort_lifeexp_pd)
+```
+
+### <font color="blue">EC:</font> 
+```{r}
+# Plots ----
+# life expectancy as a function of infant mortality
+with(subset_inf_life, plot(life_expectancy ~ infant_mortality, main = "Life expectancy as a function of infant mortality", ylab = "Life expectancy (yrs)", xlab = "Infant deaths per 1000")) # negative correlation. Each streak is a different country.
+```
+
+### <font color="red">PD:</font>
+**Plotting life expectancy as a function of infant mortality**
+```{r}
+library(ggplot2)
+ggplot(pop_ctry_infmort_lifeexp_pd, aes(x=infant_mortality, y=life_expectancy, color=country)) +
+  geom_point(size=2, shape=23, show.legend = FALSE) +
+  ggtitle("Life expectancy by infant mortality in African countries") + 
+  xlab("Infant mortality per 1000") +
+  ylab("Life expectancy (yrs)")
+```
+
+### <font color="blue">EC:</font> 
+```{r}
+# life expectancy as a function of population size, using a log-scale on the x-axis
+with(subset_pop_life, plot(life_expectancy ~ population, log = "x", main = "Life expectancy as a function of population size", sub = "(Note that x-axis is on log-scale)", ylab = "Life expectancy (yrs)", xlab = "Country population size")) # Each streak is a different country. Positive correlation within country.
+```
+
+### <font color="red">PD:</font>
+This time around, it wasn't specified whether or not we should log transform population size, so I'm going to do both: 
+
+**Plotting life expectancy as a function of population**
+```{r}
+ggplot(pop_ctry_infmort_lifeexp_pd, aes(x=population, y=life_expectancy, color=country)) +
+  geom_point(size=2, shape=23, show.legend = FALSE) +
+  ggtitle("Life expectancy by population size in African countries") + 
+  xlab("Population size") +
+  ylab("Life expectancy (yrs)")
+```
+
+### <font color="red">PD:</font>
+**Plotting life expectancy as a function of log(population)**
+```{r}
+ggplot(pop_ctry_infmort_lifeexp_pd, aes(x=population, y =life_expectancy, color=country)) +
+  geom_point(size=2, shape=23, show.legend = FALSE) +
+  scale_x_continuous(trans='log') +
+  ggtitle("Life expectancy by population size in African countries") + 
+  xlab("log(population size)") +
+  ylab("Life expectancy (yrs)")
+```
+
+
+### <font color="blue">EC:</font>  
+```{r}
+# More data processing ----
+(missing_inf_mort <- unique(africadata$year[is.na(africadata$infant_mortality)])) # years with missing data for infant mortality
+```
+
+### <font color="blue">EC:</font>  
+```{r}
+# subset of Yr2000 data
+subset_yr2000 <- subset(africadata, year == 2000)
+str(subset_yr2000)
+summary(subset_yr2000)
+```
+
+### <font color="red">PD:</font>
+Make data subset that pulls out data for only African countries and only the year 2000.
+```{r}
+africa_data_yr2000_pd <- filter(africa_data_pd, year == "2000")
+head(africa_data_yr2000_pd)
+```
+
+### <font color="blue">EC:</font> 
+```{r}
+# More plotting ----
+# For Yr2000 ONLY, life expectancy as a function of infant mortality
+with(subset_yr2000, plot(life_expectancy ~ infant_mortality, main = "Yr 2000: Life expectancy as a function of infant mortality", ylab = "Life expectancy (yrs)", xlab = "Infant deaths per 1000")) # negative correlation
+```
+
+### <font color="blue">EC:</font> 
+```{r}
+# For Yr2000 ONLY, life expectancy as a function of population size, using a log-scale on the x-axis
+with(subset_yr2000, plot(life_expectancy ~ population, log = "x", main = "Yr 2000: Life expectancy as a function of population size", sub = "(Note that x-axis is on log-scale)", ylab = "Life expectancy (yrs)", xlab = "Country population size")) # No apparent correlation
+```
+
+### <font color="blue">EC:</font>  
+```{r}
+# Linear models (using Yr2000 data) ----
+#  linear model predicting life expectancy as a function of infant mortality
+summary(fit1 <- with(subset_yr2000, lm(life_expectancy ~ infant_mortality))) # p = 2.83E-8, so highly significant
+```
+
+### <font color="blue">EC:</font> 
+```{r}
+#  linear model predicting life expectancy as a function of population size
+summary(fit2 <- with(subset_yr2000, lm(life_expectancy ~ population))) # p = 0.616, so not statistically significant at alpha = 0.05
+```
+
+### <font color="red">PD:</font>
+Create a ggplot for life_expectancy as a function of infant_mortality in African countries only in the year 2000, with a linear model fit added. 
+```{r}
+ggplot(africa_data_yr2000_pd, aes(x=infant_mortality, y=life_expectancy, show.legend = FALSE)) +
+  geom_point(size=2) +
+  ggtitle("Life exp. by infant mortality in African countries in 2000") + 
+  xlab("Infant mortality per 1000") +
+  ylab("Life expectancy (yrs)") +
+  geom_smooth(method='lm')
+```
+
+
